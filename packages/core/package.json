@@ -1,0 +1,26 @@
+{
+  "name": "@wenabs/core",
+  "version": "0.0.1",
+  "private": true,
+  "description": "We Need A Budget Spreadsheet - Core",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "dependencies": {
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@types/jest": "29.x",
+    "@types/lodash": "4.x",
+    "@types/node": "16.x",
+    "jest": "^29.3.1",
+    "ts-jest": "^29.0.3",
+    "typescript": "4.x"
+  },
+  "author": "Sean Kleinjung",
+  "ace": {
+    "build": {
+      "mode": "library"
+    },
+    "package": false
+  }
+}

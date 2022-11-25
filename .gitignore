@@ -1,0 +1,11 @@
+**/*.d.ts
+**/node_modules
+
+# CDK asset staging directory
+**/.cdk.staging
+**/cdk.out
+
+# build outputs
+packages/*/dist
+packages/*/lib
+dist
