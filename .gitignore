@@ -4,6 +4,8 @@
 # CDK asset staging directory
 **/.cdk.staging
 **/cdk.out
+# re-generatable cdk files
+**/cdk.context.json
 
 # build outputs
 packages/*/dist

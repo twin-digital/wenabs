@@ -8,26 +8,25 @@
     "npm": ">=8"
   },
   "workspaces": [
-    "packages/core"
+    "packages/*"
   ],
   "scripts": {
-    "build": "npm exec --package=@twindigital/ace -ws -- ace build",
-    "cdk": "npm run build && cd packages/cdk && npm run cdk",
+    "build": "npm exec ace --workspaces -- build",
+    "cdk": "npm run build && npm run cdk --workspaces --if-present",
     "checks": "run-p lint typecheck test",
-    "dist": "npm exec --package=@twindigital/ace -ws -- ace package",
+    "dist": "npm exec ace --workspaces -- package",
     "lint": "run-p lint:eslint lint:package-json",
     "lint:eslint": "eslint -c .eslintrc.js .",
     "lint:package-json": "npmPkgJsonLint --ignorePath .npmpackagejsonlintignore .",
     "login:npm": "run-s login:npm:*",
     "login:npm:twin-digital": "aws codeartifact login --tool npm --domain twin-digital --repository shared --namespace '@twin-digital'",
-    "login:npm:twindigital": "aws codeartifact login --tool npm --domain twin-digital --repository shared --namespace '@twindigital'",
     "login:npm:wenabs": "aws codeartifact login --tool npm --domain twin-digital --repository shared --namespace '@wenabs'",
     "test": "jest",
     "typecheck": "tsc",
     "watch": "tsc -w"
   },
   "devDependencies": {
-    "@twindigital/ace": "^0.0.1",
+    "@twin-digital/ace": "^0.0.1",
     "@types/jest": "29.x",
     "@types/node": "16.x",
     "@types/prettier": "2.x",
