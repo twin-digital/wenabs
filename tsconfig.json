@@ -4,6 +4,7 @@
     "allowSyntheticDefaultImports": true,
     "alwaysStrict": true,
     "baseUrl": ".",
+    "composite": true,
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
@@ -14,7 +15,7 @@
       "es2018"
     ],
     "module": "commonjs",
-    "noEmit": true,
+    "noEmit": false,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
@@ -23,10 +24,6 @@
     },
     "pretty": true,
     "resolveJsonModule": true,
-    "rootDirs": [
-      "packages/*/src",
-      "packages/*/test"
-    ],
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
@@ -37,6 +34,10 @@
     "**/node_modules/*",
     "**/cdk.out/*",
     "**/dist/*"
+  ],
+  "include": [
+    "./packages/**/src",
+    "./packages/**/test"
   ],
   "ts-node": {
     "require": ["tsconfig-paths/register"]

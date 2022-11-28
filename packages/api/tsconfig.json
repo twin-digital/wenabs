@@ -1,9 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "./src",
-    "rootDir": ".",
+    "outDir": "lib",
+    "rootDir": "src",
     "types": ["node"]
   },
-  "include": ["bin", "src"]
+  "include": ["src"],
+  "references": [
+    { "path": "../core" }
+  ]
 }

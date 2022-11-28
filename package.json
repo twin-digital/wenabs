@@ -51,5 +51,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/twin-digital/wenabs.git"
+  },
+  "dependencies": {
+    "csv-stringify": "^6.2.2"
   }
 }

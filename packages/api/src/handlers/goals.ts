@@ -1,12 +1,14 @@
+import middy from '@middy/core'
+import ssm from '@middy/ssm'
 import type {
   APIGatewayEvent,
   APIGatewayProxyResult,
   Context,
 } from 'aws-lambda'
-import { flatten, flow, get, map } from 'lodash/fp'
-import middy from '@middy/core'
-import ssm from '@middy/ssm'
-import { API, Category } from 'ynab'
+import { stringify } from 'csv-stringify/sync'
+
+import { fromMilliunits, listCategoriesWithGoals } from '@wenabs/core'
+import { map } from 'lodash/fp'
 
 export type GoalsHandlerEnvironment = {
   YNAB_TOKEN_PARAMETER: string
@@ -41,8 +43,6 @@ export const handler = middy(
       }
     }
 
-    const ynab = new API(context.ynabToken)
-
     const budgetId = event.pathParameters?.budgetId
     if (!budgetId) {
       return {
@@ -55,23 +55,36 @@ export const handler = middy(
     }
 
     try {
-      const response = await ynab.categories.getCategories(budgetId)
+      const goalCategories = await listCategoriesWithGoals({
+        budgetId,
+        token: context.ynabToken,
+      })
 
-      const goals = flow(
-        map(get('categories')),
-        flatten,
-        map((category: Category) => ({
-          name: category.name,
-          type: category.goal_type,
-          target: category.goal_target,
-          monthsLeft: category.goal_months_to_budget,
-        }))
-      )(response.data.category_groups)
+      const records = map(
+        (category) => ({
+          amountPerMonth: category.goal?.type
+            ? fromMilliunits(category.goal?.amountPerMonth ?? 0)
+            : undefined,
+          category: category.name,
+          group: category.group,
+          type: category.goal?.type ?? '',
+        }),
+        goalCategories
+      )
+
+      const csv = stringify(records, {
+        columns: [
+          { header: 'Group', key: 'group' },
+          { header: 'Category', key: 'category' },
+          { header: 'Type', key: 'type' },
+          { header: 'Amount (monthly)', key: 'amountPerMonth' },
+        ],
+      })
 
       return {
-        body: JSON.stringify(goals, null, 2),
+        body: csv,
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/csv',
         },
         statusCode: 200,
       }
