@@ -1,7 +1,27 @@
+import middy from '@middy/core'
+import ssm from '@middy/ssm'
 import type {
   APIGatewayTokenAuthorizerEvent,
   APIGatewayAuthorizerResult,
+  Context,
 } from 'aws-lambda'
+
+export type AuthorizerEnvironment = {
+  VALID_TOKEN_PARAMETER: string
+}
+
+type AuthorizerContext = Context & {
+  validToken?: string
+}
+
+const getConfig = (): AuthorizerEnvironment => {
+  const { VALID_TOKEN_PARAMETER } = process.env
+  if (!VALID_TOKEN_PARAMETER) {
+    throw new Error('VALID_TOKEN_PARAMETER is required.')
+  }
+
+  return { VALID_TOKEN_PARAMETER }
+}
 
 const createResponse = (
   allow: boolean,
@@ -20,19 +40,32 @@ const createResponse = (
   principalId: 'user',
 })
 
-export const handler = async (
-  event: APIGatewayTokenAuthorizerEvent
-): Promise<APIGatewayAuthorizerResult> => {
-  const token = event.authorizationToken
-  console.log('token:', token)
-  switch (token) {
-    case 'Bearer allow':
-      return createResponse(true, event.methodArn)
-    case 'deny':
-      return createResponse(false, event.methodArn)
-    case 'unauthorized':
-      throw 'Unauthorized'
-    default:
-      throw 'Error: Invalid token'
+export const handler = middy(
+  async (
+    event: APIGatewayTokenAuthorizerEvent,
+    context: AuthorizerContext
+  ): Promise<APIGatewayAuthorizerResult> => {
+    const validToken = context.validToken
+    if (validToken === undefined) {
+      console.error(
+        `SSM parameter not set: ${getConfig().VALID_TOKEN_PARAMETER}`
+      )
+      throw new Error('Configuration error')
+    }
+
+    const token = event.authorizationToken
+    switch (token) {
+      case `Bearer ${context.validToken}`:
+        return createResponse(true, event.methodArn)
+      default:
+        throw 'Invalid token'
+    }
   }
-}
+).use(
+  ssm({
+    fetchData: {
+      validToken: getConfig().VALID_TOKEN_PARAMETER,
+    },
+    setToContext: true,
+  })
+)
