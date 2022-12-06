@@ -36,6 +36,7 @@
       {
         "mode": "bundle",
         "entryPoints": [
+          "src/handlers/authorizer.ts",
           "src/handlers/goals.ts"
         ],
         "external": "aws-sdk"
