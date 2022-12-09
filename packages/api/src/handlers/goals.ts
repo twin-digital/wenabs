@@ -1,110 +1,97 @@
-import middy from '@middy/core'
-import ssm from '@middy/ssm'
-import type {
-  APIGatewayEvent,
-  APIGatewayProxyResult,
-  Context,
-} from 'aws-lambda'
+import type { APIGatewayEvent, APIGatewayProxyResult } from 'aws-lambda'
 import { stringify } from 'csv-stringify/sync'
 
 import { fromMilliunits, listCategoriesWithGoals } from '@wenabs/core'
 import { map } from 'lodash/fp'
+import { invokeLambda } from '../lib/invoke-lambda'
 
 export type GoalsHandlerEnvironment = {
-  YNAB_TOKEN_PARAMETER: string
-}
-
-type GoalsHandlerContext = Context & {
-  ynabToken?: string
+  /** ARN of the accounts lambda, used to retrieve the YNAB token */
+  ACCOUNTS_FUNCTION_ARN: string
 }
 
 const getConfig = (): GoalsHandlerEnvironment => {
-  const { YNAB_TOKEN_PARAMETER } = process.env
-  if (!YNAB_TOKEN_PARAMETER) {
-    throw new Error('YNAB_TOKEN_PARAMETER is required.')
+  const { ACCOUNTS_FUNCTION_ARN } = process.env
+  if (!ACCOUNTS_FUNCTION_ARN) {
+    throw new Error('ACCOUNTS_FUNCTION_ARN is required.')
   }
 
-  return { YNAB_TOKEN_PARAMETER }
+  return { ACCOUNTS_FUNCTION_ARN }
 }
 
-export const handler = middy(
-  async (
-    event: APIGatewayEvent,
-    context: GoalsHandlerContext
-  ): Promise<APIGatewayProxyResult> => {
-    if (!context.ynabToken) {
-      console.error('No YNAB token was provided in the context')
-      return {
-        body: JSON.stringify({ message: 'Internal server error' }, null, 2),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        statusCode: 500,
-      }
-    }
+export const handler = async (
+  event: APIGatewayEvent
+): Promise<APIGatewayProxyResult> => {
+  // TODO: a parameter specifying WHICH account should be needed
+  const { data } = await invokeLambda<{ accessToken: string }>({
+    functionName: getConfig().ACCOUNTS_FUNCTION_ARN,
+  })
 
-    const budgetId = event.pathParameters?.budgetId
-    if (!budgetId) {
-      return {
-        body: 'budgetId is required',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        statusCode: 400,
-      }
-    }
-
-    try {
-      const goalCategories = await listCategoriesWithGoals({
-        budgetId,
-        token: context.ynabToken,
-      })
-
-      const records = map(
-        (category) => ({
-          amountPerMonth: category.goal?.type
-            ? fromMilliunits(category.goal?.amountPerMonth ?? 0)
-            : undefined,
-          category: category.name,
-          group: category.group,
-          type: category.goal?.type ?? '',
-        }),
-        goalCategories
-      )
-
-      const csv = stringify(records, {
-        columns: [
-          { header: 'Group', key: 'group' },
-          { header: 'Category', key: 'category' },
-          { header: 'Type', key: 'type' },
-          { header: 'Amount (monthly)', key: 'amountPerMonth' },
-        ],
-      })
-
-      return {
-        body: csv,
-        headers: {
-          'Content-Type': 'text/csv',
-        },
-        statusCode: 200,
-      }
-    } catch (err: any) {
-      console.error('YNAB error:', err)
-
-      return {
-        body: JSON.stringify({ message: err?.message }, null, 2),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        statusCode: 500,
-      }
+  if (!data.accessToken) {
+    console.error('Failed to retrieve YNAB token')
+    return {
+      body: JSON.stringify({ message: 'Internal server error' }, null, 2),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      statusCode: 500,
     }
   }
-).use(
-  ssm({
-    fetchData: {
-      ynabToken: getConfig().YNAB_TOKEN_PARAMETER,
-    },
-    setToContext: true,
-  })
-)
+
+  const budgetId = event.pathParameters?.budgetId
+  if (!budgetId) {
+    return {
+      body: 'budgetId is required',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      statusCode: 400,
+    }
+  }
+
+  try {
+    const goalCategories = await listCategoriesWithGoals({
+      budgetId,
+      token: data.accessToken,
+    })
+
+    const records = map(
+      (category) => ({
+        amountPerMonth: category.goal?.type
+          ? fromMilliunits(category.goal?.amountPerMonth ?? 0)
+          : undefined,
+        category: category.name,
+        group: category.group,
+        type: category.goal?.type ?? '',
+      }),
+      goalCategories
+    )
+
+    const csv = stringify(records, {
+      columns: [
+        { header: 'Group', key: 'group' },
+        { header: 'Category', key: 'category' },
+        { header: 'Type', key: 'type' },
+        { header: 'Amount (monthly)', key: 'amountPerMonth' },
+      ],
+    })
+
+    return {
+      body: csv,
+      headers: {
+        'Content-Type': 'text/csv',
+      },
+      statusCode: 200,
+    }
+  } catch (err: any) {
+    console.error('YNAB error:', err)
+
+    return {
+      body: JSON.stringify({ message: err?.message }, null, 2),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      statusCode: 500,
+    }
+  }
+}
