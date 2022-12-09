@@ -8,7 +8,8 @@
     "cdk": "npx cdk deploy -c io.twin-digital.environmentType=dev -c io.twin-digital.namespace=default --require-approval never --all"
   },
   "dependencies": {
-    "@aws-sdk/client-ssm": "^3.216.0",
+    "@aws-sdk/client-lambda": "^3.224.0",
+    "@aws-sdk/client-ssm": "^3.224.0",
     "@middy/core": "^4.0.0",
     "@middy/ssm": "^4.0.0",
     "@wenabs/core": "*",
@@ -36,6 +37,7 @@
       {
         "mode": "bundle",
         "entryPoints": [
+          "src/handlers/accounts.ts",
           "src/handlers/authorizer.ts",
           "src/handlers/goals.ts"
         ],
