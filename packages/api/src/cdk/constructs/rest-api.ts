@@ -5,7 +5,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda'
 import { Construct } from 'constructs'
 
 import { SsmSecret } from '../constructs/ssm-secret'
-import { MethodOptions } from 'aws-cdk-lib/aws-apigateway'
+import { MethodOptions, ProxyResourceOptions } from 'aws-cdk-lib/aws-apigateway'
 
 export type AccountsApiProps = {
   /** ID of the RestApi (API gateway) to register resources with */
@@ -27,6 +27,26 @@ export type AddMethodOptions = {
 
   /**
    * URL path of the method, represented as an array of path components
+   * TODO: just take a string and split on '/'
+   */
+  path: string[]
+}
+
+export type AddProxyOptions = Omit<
+  ProxyResourceOptions,
+  'defaultIntegration' | 'defaultMethodOptions'
+> & {
+  /** Indicates whether authorization is required or not (Default: true) */
+  authorizationRequired?: boolean
+
+  /** Optional additional default options to apply to the proxy methods */
+  defaultMethodOptions?: Omit<MethodOptions, 'authorizer' | 'authorizationType'>
+
+  /** Lambda function which handles all calls to the proxied resource */
+  handler: lambda.Function
+
+  /**
+   * URL path of the proxy resource, represented as an array of path components
    * TODO: just take a string and split on '/'
    */
   path: string[]
@@ -106,5 +126,21 @@ export class RestApi extends Construct {
         ...(authorizationRequired ? { authorizer: this._authorizer } : {}),
       }
     )
+  }
+
+  public addProxy({
+    authorizationRequired = true,
+    defaultMethodOptions,
+    handler,
+    path,
+  }: AddProxyOptions): apigateway.ProxyResource {
+    const resource = this._getResource(this.api.root, path)
+    return resource.addProxy({
+      defaultIntegration: new apigateway.LambdaIntegration(handler),
+      defaultMethodOptions: {
+        ...defaultMethodOptions,
+        ...(authorizationRequired ? { authorizer: this._authorizer } : {}),
+      },
+    })
   }
 }

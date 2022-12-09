@@ -23,17 +23,15 @@ const getConfig = (): AuthorizerEnvironment => {
   return { VALID_TOKEN_PARAMETER }
 }
 
-const createResponse = (
-  allow: boolean,
-  resource: string
-): APIGatewayAuthorizerResult => ({
+const createResponse = (allow: boolean): APIGatewayAuthorizerResult => ({
   policyDocument: {
     Version: '2012-10-17',
     Statement: [
       {
         Action: 'execute-api:Invoke',
         Effect: allow ? 'Allow' : 'Deny',
-        Resource: resource,
+        // TODO: restrict this
+        Resource: '*',
       },
     ],
   },
@@ -56,7 +54,7 @@ export const handler = middy(
     const token = event.authorizationToken
     switch (token) {
       case `Bearer ${context.validToken}`:
-        return createResponse(true, event.methodArn)
+        return createResponse(true)
       default:
         throw 'Invalid token'
     }

@@ -1,11 +1,15 @@
+import { TextEncoder } from 'node:util'
 import {
-  LambdaClient,
   InvocationType,
   InvokeCommand,
   InvokeCommandOutput,
+  LambdaClient,
+  LogType,
 } from '@aws-sdk/client-lambda'
+import { APIGatewayProxyEvent } from 'aws-lambda'
 import { get, isNumber, isPlainObject, isString } from 'lodash/fp'
 
+const textEncoder = new TextEncoder()
 const lambda = new LambdaClient({})
 
 export interface InvokeLambdaOptions {
@@ -25,6 +29,24 @@ interface InvokeResponsePayload {
   body?: string
   headers?: Record<string, string>
   statusCode: number
+}
+
+const createAPIGatewayProxyEvent = (
+  options: InvokeLambdaOptions
+): Omit<
+  APIGatewayProxyEvent,
+  'isBase64Encoded' | 'stageVariables' | 'requestContext' | 'resource'
+> => {
+  return {
+    body: null,
+    headers: {},
+    multiValueHeaders: {},
+    httpMethod: 'GET',
+    path: '',
+    pathParameters: {},
+    queryStringParameters: {},
+    multiValueQueryStringParameters: {},
+  }
 }
 
 const isValidPayload = (
@@ -58,13 +80,19 @@ const parsePayload = (
   return parsed
 }
 
-export const invokeLambda = async <T>({
-  functionName,
-}: InvokeLambdaOptions): Promise<InvokeLambdaResponse<T>> => {
+export const invokeLambda = async <T>(
+  options: InvokeLambdaOptions
+): Promise<InvokeLambdaResponse<T>> => {
+  const { functionName } = options
+
   const response = await lambda.send(
     new InvokeCommand({
       FunctionName: functionName,
       InvocationType: InvocationType.RequestResponse,
+      LogType: LogType.None,
+      Payload: textEncoder.encode(
+        JSON.stringify(createAPIGatewayProxyEvent(options))
+      ),
     })
   )
 

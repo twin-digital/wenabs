@@ -38,6 +38,7 @@
         "mode": "bundle",
         "entryPoints": [
           "src/handlers/accounts.ts",
+          "src/handlers/budgets.ts",
           "src/handlers/authorizer.ts",
           "src/handlers/goals.ts"
         ],
