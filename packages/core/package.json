@@ -6,10 +6,23 @@
   "license": "MIT",
   "main": "lib/index.js",
   "dependencies": {
+    "@middy/core": "^4.0.4",
+    "@middy/http-content-encoding": "^4.0.4",
+    "@middy/http-content-negotiation": "^4.0.4",
+    "@middy/http-cors": "^4.0.4",
+    "@middy/http-event-normalizer": "^4.0.4",
+    "@middy/http-header-normalizer": "^4.0.4",
+    "@middy/http-json-body-parser": "^4.0.4",
+    "@middy/http-response-serializer": "^4.0.4",
+    "@middy/http-security-headers": "^4.0.4",
+    "@middy/http-urlencode-path-parser": "^4.0.4",
+    "@middy/util": "^4.0.4",
+    "@middy/validator": "^4.0.4",
     "lodash": "^4.17.21",
     "ynab": "^1.32.0"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.109",
     "@types/jest": "29.x",
     "@types/lodash": "4.x",
     "@types/node": "16.x",

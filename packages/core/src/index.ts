@@ -1,3 +1,6 @@
+export * from './http/http-error'
+export * from './http/jsonapi-error-handler'
+export * from './http/with-rest-api-middleware'
 export * from './ynab/api'
 export * from './ynab/categories'
 export * from './ynab/goals'
