@@ -1,5 +1,4 @@
 import { filter, flow, map } from 'lodash/fp'
-import { API } from 'ynab'
 
 import type { Goal } from '../goals/goal'
 import { flattenCategoryGroups } from '../categories'
@@ -29,9 +28,8 @@ export type CategoryWithGroupAndGoal = {
  */
 export const listCategoriesWithGoals = async ({
   budgetId,
-  token,
+  ynab,
 }: ListCategoriesWithGoalsOptions): Promise<CategoryWithGroupAndGoal[]> => {
-  const ynab = new API(token)
   const response = await ynab.categories.getCategories(budgetId)
 
   return flow(

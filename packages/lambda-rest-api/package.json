@@ -1,8 +1,8 @@
 {
-  "name": "@wenabs/core",
+  "name": "@twin-digital/lambda-rest-api",
   "version": "0.0.1",
   "private": true,
-  "description": "We Need A Budget Spreadsheet - Core",
+  "description": "Utilities for creating lambdas for implementing REST APIs",
   "license": "MIT",
   "main": "lib/index.js",
   "dependencies": {
@@ -18,9 +18,7 @@
     "@middy/http-urlencode-path-parser": "^4.0.4",
     "@middy/util": "^4.0.4",
     "@middy/validator": "^4.0.4",
-    "@twin-digital/lambda-rest-api": "^0.0.1",
-    "lodash": "^4.17.21",
-    "ynab": "^1.32.0"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.109",

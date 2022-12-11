@@ -3,6 +3,7 @@ import { Construct } from 'constructs'
 import { RestApi } from './constructs/rest-api'
 import { AccountsResource } from './api-resources/accounts-resource'
 import { GoalsResource } from './api-resources/goals-resource'
+import { BudgetsResource } from './api-resources/budgets-resource'
 
 /**
  * Root construct of the WENABS API.
@@ -20,6 +21,10 @@ export class Api extends Construct {
         api,
       }
       const accounts = new AccountsResource(this, 'Accounts', resourceProps)
+      new BudgetsResource(this, 'Budgets', {
+        ...resourceProps,
+        accountsFunction: accounts.accountsFunction,
+      })
       new GoalsResource(this, 'Goals', {
         ...resourceProps,
         accountsFunction: accounts.accountsFunction,

@@ -31,7 +31,7 @@ export class GoalsResource extends Construct {
       environment: {
         ACCOUNTS_FUNCTION_ARN: accountsFunction.functionArn,
       },
-      handler: 'goals.handler',
+      handler: 'goals.getGoalsCsv',
       runtime: lambda.Runtime.NODEJS_16_X,
     })
     accountsFunction.grantInvoke(goalsHandler)
@@ -39,7 +39,7 @@ export class GoalsResource extends Construct {
     api.addMethod({
       handler: goalsHandler,
       methodOptions: {
-        operationName: 'ListGoals',
+        operationName: 'GetGoalsCsv',
       },
       path: ['budgets', '{budgetId}', 'goals'],
     })

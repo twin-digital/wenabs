@@ -1,4 +1,6 @@
 export * from './ynab/api'
 export * from './ynab/categories'
+export * from './ynab/errors'
 export * from './ynab/goals'
+export * from './ynab/http/ynab-api-middleware'
 export * from './ynab/utils'
