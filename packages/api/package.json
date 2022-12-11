@@ -12,6 +12,7 @@
     "@aws-sdk/client-ssm": "^3.224.0",
     "@middy/core": "^4.0.0",
     "@middy/ssm": "^4.0.0",
+    "@twin-digital/lambda-rest-api": "^0.0.1",
     "@wenabs/core": "*",
     "csv-generate": "^4.2.1",
     "lodash": "^4.17.21",

@@ -50,12 +50,19 @@ export class BudgetsResource extends Construct {
 
     api.addMethod({
       handler: listBudgetsHandler,
-      method: 'ANY',
+      method: 'GET',
+      methodOptions: {
+        operationName: 'ListBudgets',
+      },
       path: ['budgets'],
     })
-    api.addProxy({
+    api.addMethod({
       handler: getBudgetHandler,
-      path: ['budgets'],
+      method: 'GET',
+      methodOptions: {
+        operationName: 'GetBudget',
+      },
+      path: ['budgets', '{budgetId}'],
     })
   }
 }

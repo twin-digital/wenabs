@@ -1,4 +1,3 @@
-import middy from '@middy/core'
 import httpContentEncoding from '@middy/http-content-encoding'
 import httpContentNegotiation from '@middy/http-content-negotiation'
 import httpCorsMiddleware from '@middy/http-cors'
@@ -9,10 +8,18 @@ import httpResponseSerializer from '@middy/http-response-serializer'
 import httpSecurityHeaders from '@middy/http-security-headers'
 import httpUrlEncodePathParser from '@middy/http-urlencode-path-parser'
 import validator from '@middy/validator'
-import { APIGatewayProxyEvent, APIGatewayProxyHandler } from 'aws-lambda'
 import { jsonApiErrorHandler } from './jsonapi-error-handler'
 
 export type RestApiMiddlewareOptions = {
+  /**
+   * Options for configuring the HTTP content negotation middleware. If specified, none of the defaults
+   * are used and all desired values must be provided.
+   *
+   * @default do not parse charsets or encodings, support language 'en' and content-tye 'application/json' only
+   * @see https://middy.js.org/docs/middlewares/http-content-negotiation
+   */
+  contentNegotation?: Parameters<typeof httpContentNegotiation>[0]
+
   /**
    * Options for configuring the CORS middlware.
    * @see https://middy.js.org/docs/middlewares/http-cors/
@@ -35,45 +42,35 @@ export type RestApiMiddlewareOptions = {
  * @param options optional configuration to customize select middleware
  * @returns the wrapped handler
  */
-export const withRestApiMiddleware = (
-  handler: APIGatewayProxyHandler,
-  options: RestApiMiddlewareOptions = {}
-) => {
-  const withFirstMiddleware = middy<APIGatewayProxyEvent>(handler)
-    .use(httpEventNormalizer())
-    .use(httpHeaderNormalizer())
-    .use(
-      httpContentNegotiation({
-        parseCharsets: false,
-        parseEncodings: false,
-        availableLanguages: ['en'],
-        availableMediaTypes: ['application/json'],
-      })
-    )
-    .use(httpUrlEncodePathParser())
-    .use(httpJsonBodyParser())
-    .use(httpSecurityHeaders())
-    .use(httpCorsMiddleware(options.cors))
-    .use(httpContentEncoding())
-    .use(
-      httpResponseSerializer({
-        serializers: [
-          {
-            regex: /^application\/json$/,
-            serializer: ({ body }) => JSON.stringify(body),
-          },
-        ],
-        defaultContentType: 'application/json',
-      })
-    )
-
-  // if validator options provided, add that middleware
-  const withOptionalValidation =
-    options.validator === undefined
-      ? withFirstMiddleware
-      : withFirstMiddleware.use(validator(options.validator))
-
-  const withAllMiddleware = withOptionalValidation.use(jsonApiErrorHandler())
-
-  return withAllMiddleware
-}
+export const restApiMiddleware = (options: RestApiMiddlewareOptions = {}) => [
+  httpEventNormalizer(),
+  httpHeaderNormalizer(),
+  httpContentNegotiation(
+    options.contentNegotation ?? {
+      parseCharsets: false,
+      parseEncodings: false,
+      availableLanguages: ['en'],
+      availableMediaTypes: ['application/json'],
+    }
+  ),
+  httpUrlEncodePathParser(),
+  httpJsonBodyParser(),
+  httpSecurityHeaders(),
+  httpCorsMiddleware(options.cors),
+  httpContentEncoding(),
+  httpResponseSerializer({
+    serializers: [
+      {
+        regex: /^application\/json$/,
+        serializer: ({ body }) => JSON.stringify(body),
+      },
+      {
+        regex: /^text\/csv$/,
+        serializer: ({ body }) => body,
+      },
+    ],
+    defaultContentType: 'application/json',
+  }),
+  ...(options.validator === undefined ? [] : [validator(options.validator)]),
+  jsonApiErrorHandler(),
+]

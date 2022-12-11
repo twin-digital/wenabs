@@ -25,10 +25,10 @@ export class Api extends Construct {
         ...resourceProps,
         accountsFunction: accounts.accountsFunction,
       })
-      // new GoalsResource(this, 'Goals', {
-      //   ...resourceProps,
-      //   accountsFunction: accounts.accountsFunction,
-      // })
+      new GoalsResource(this, 'Goals', {
+        ...resourceProps,
+        accountsFunction: accounts.accountsFunction,
+      })
     }
   }
 }
