@@ -7,6 +7,5 @@
   },
   "include": ["src", "test"],
   "references": [
-    { "path": "../lambda-rest-api" }
   ]
 }

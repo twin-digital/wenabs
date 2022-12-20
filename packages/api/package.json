@@ -19,7 +19,7 @@
     "ynab": "^1.32.0"
   },
   "devDependencies": {
-    "@twin-digital/cdk-patterns": "^0.0.3",
+    "@twin-digital/cdk-patterns": "^0.1.1",
     "@types/aws-lambda": "^8.10.109",
     "@types/express": "4.x",
     "@types/jest": "29.x",

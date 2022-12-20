@@ -2,10 +2,8 @@ import path from 'node:path'
 
 import * as lambda from 'aws-cdk-lib/aws-lambda'
 import { Construct } from 'constructs'
-
-import type { ApiResourceProps } from './api-resource-props'
-
-import { SsmSecret } from '../constructs/ssm-secret'
+import { SsmSecret } from '@twin-digital/cdk-patterns'
+import { ApiResourceProps } from './api-resource-props'
 
 /**
  * Root construct of the WENABS API.

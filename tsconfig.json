@@ -20,7 +20,6 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "paths": {
-      "@twin-digital/lambda-rest-api": ["packages/lambda-rest-api/src"],
       "@wenabs/*": ["packages/*/src"]
     },
     "pretty": true,

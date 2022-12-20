@@ -1,9 +1,10 @@
 import { Construct } from 'constructs'
 
-import { RestApi } from './constructs/rest-api'
 import { AccountsResource } from './api-resources/accounts-resource'
 import { GoalsResource } from './api-resources/goals-resource'
 import { BudgetsResource } from './api-resources/budgets-resource'
+import { LambdaAuthorizer } from './constructs/lambda-authorizer'
+import { RestApi } from '@twin-digital/cdk-patterns'
 
 /**
  * Root construct of the WENABS API.
@@ -14,7 +15,14 @@ export class Api extends Construct {
       super(scope, id)
 
       // create API gateway rest api
-      const api = new RestApi(this, 'RestApi')
+      const authorizer = new LambdaAuthorizer(this, 'Authorizer')
+      const api = new RestApi(this, 'RestApi', {
+        authorizer: authorizer.handler,
+        restApiProps: {
+          description: 'Handles WENABS api requests.',
+          restApiName: 'WENABS API',
+        },
+      })
 
       // create REST resources
       const resourceProps = {
