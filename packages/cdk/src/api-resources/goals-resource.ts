@@ -1,10 +1,10 @@
-import path from 'node:path'
-
 import * as apigateway from 'aws-cdk-lib/aws-apigateway'
 import * as lambda from 'aws-cdk-lib/aws-lambda'
 import { Construct } from 'constructs'
 
 import type { ApiResourceProps } from './api-resource-props'
+import { LambdaAssets } from '@wenabs/api'
+import { NodeLambda } from '../constructs/node-lambda'
 
 export type GoalsResourceProps = ApiResourceProps & {
   accountsFunction: lambda.Function
@@ -24,20 +24,18 @@ export class GoalsResource extends Construct {
   ) {
     super(scope, id)
 
-    const goalsHandler = new lambda.Function(this, 'GoalsHandler', {
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, '..', '..', '..', 'dist')
-      ),
-      environment: {
-        ACCOUNTS_FUNCTION_ARN: accountsFunction.functionArn,
+    const getGoalsCsv = new NodeLambda(this, 'getGoalsCsv', {
+      asset: LambdaAssets.getGoalsCsv,
+      functionProps: {
+        environment: {
+          ACCOUNTS_FUNCTION_ARN: accountsFunction.functionArn,
+        },
       },
-      handler: 'goals.getGoalsCsv',
-      runtime: lambda.Runtime.NODEJS_16_X,
-    })
-    accountsFunction.grantInvoke(goalsHandler)
+    }).lambdaFunction
+    accountsFunction.grantInvoke(getGoalsCsv)
 
     api.addMethod({
-      handler: goalsHandler,
+      handler: getGoalsCsv,
       methodOptions: {
         operationName: 'GetGoalsCsv',
       },

@@ -1,9 +1,14 @@
 import { stringify } from 'csv-stringify/sync'
 
-import { fromMilliunits, listCategoriesWithGoals } from '@wenabs/core'
-import { map } from 'lodash/fp'
+import {
+  fromMilliunits,
+  getCategoryFundingHistory,
+  getCategoryGroup,
+} from '@wenabs/core'
+import { keys, map, split } from 'lodash/fp'
 import { withWenabsMiddleware } from './with-wenabs-middleware'
 import { HttpError } from '@twin-digital/lambda-rest-api'
+import {} from 'lodash'
 
 export type GoalsHandlerEnvironment = {
   /** ARN of the accounts lambda, used to retrieve the YNAB token */
@@ -21,9 +26,19 @@ export const getGoalsCsv = withWenabsMiddleware(
       })
     }
 
+    const monthsParam = event.queryStringParameters?.months
+    const months = monthsParam ? split(',', monthsParam) : []
+
     try {
-      const goalCategories = await listCategoriesWithGoals({
+      const findCategoryGroup = await getCategoryGroup({
         budgetId,
+        ynab,
+      })
+
+      const categories = await getCategoryFundingHistory({
+        budgetId,
+        getCategoryGroup: findCategoryGroup,
+        months,
         ynab,
       })
 
@@ -33,10 +48,17 @@ export const getGoalsCsv = withWenabsMiddleware(
             ? fromMilliunits(category.goal?.amountPerMonth ?? 0)
             : undefined,
           category: category.name,
-          group: category.group,
+          group: category.categoryGroup?.name,
           type: category.goal?.type ?? '',
+          ...keys(category.fundingHistory).reduce(
+            (result, month) => ({
+              ...result,
+              [month]: fromMilliunits(category.fundingHistory[month]),
+            }),
+            {} as Record<string, number | undefined>
+          ),
         }),
-        goalCategories
+        categories
       )
 
       const csv = stringify(records, {
@@ -44,8 +66,10 @@ export const getGoalsCsv = withWenabsMiddleware(
           { header: 'Group', key: 'group' },
           { header: 'Category', key: 'category' },
           { header: 'Type', key: 'type' },
-          { header: 'Amount (monthly)', key: 'amountPerMonth' },
+          ...months.map((month) => ({ header: month, key: month })),
+          { header: 'Goal (monthly)', key: 'amountPerMonth' },
         ],
+        header: true,
       })
 
       // processed by middy HttpResponseSerializer middleware

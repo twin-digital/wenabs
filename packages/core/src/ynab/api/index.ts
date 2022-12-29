@@ -1,2 +1,5 @@
+export * from './get-categories-for-month'
+export * from './get-category-funding-history'
+export * from './get-category-group'
 export * from './list-categories-with-goals'
 export * from './ynab-api-options'

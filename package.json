@@ -13,14 +13,15 @@
   "scripts": {
     "build": "npm exec ace --workspaces -- build",
     "cdk": "npm run build && npm run cdk --workspaces --if-present",
+    "cdk:dev": "npm run build && npm run cdk:dev --workspaces --if-present",
     "checks": "run-p lint typecheck test",
     "dist": "npm exec ace --workspaces -- package",
     "lint": "run-p lint:eslint lint:package-json",
     "lint:eslint": "eslint -c .eslintrc.js .",
     "lint:package-json": "npmPkgJsonLint --ignorePath .npmpackagejsonlintignore .",
     "login:npm": "run-s login:npm:*",
-    "login:npm:twin-digital": "aws codeartifact login --tool npm --domain twin-digital --repository shared --namespace '@twin-digital'",
-    "login:npm:wenabs": "aws codeartifact login --tool npm --domain twin-digital --repository shared --namespace '@wenabs'",
+    "login:npm:twin-digital": "aws codeartifact login --tool npm --domain twin-digital --domain-owner 934979133063 --repository shared --namespace '@twin-digital'",
+    "login:npm:wenabs": "aws codeartifact login --tool npm --domain twin-digital --domain-owner 934979133063 --repository shared --namespace '@wenabs'",
     "test": "jest",
     "typecheck": "tsc",
     "watch": "tsc -w"

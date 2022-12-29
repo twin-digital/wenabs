@@ -1,5 +1,4 @@
 import { HttpError } from '@twin-digital/lambda-rest-api'
-import { isYnabErrorResponse, ynabErrorToHttpError } from '@wenabs/core'
 import { withWenabsMiddleware } from './with-wenabs-middleware'
 
 export type GoalsHandlerEnvironment = {

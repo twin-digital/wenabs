@@ -1,9 +1,9 @@
-import path from 'node:path'
-
 import * as lambda from 'aws-cdk-lib/aws-lambda'
 import { Construct } from 'constructs'
 import { SsmSecret } from '@twin-digital/cdk-patterns'
 import { ApiResourceProps } from './api-resource-props'
+import { LambdaAssets } from '@wenabs/api'
+import { NodeLambda } from '../constructs/node-lambda'
 
 /**
  * Root construct of the WENABS API.
@@ -21,23 +21,21 @@ export class AccountsResource extends Construct {
       },
     })
 
-    const ynabHandler = new lambda.Function(this, 'YnabHandler', {
-      code: lambda.Code.fromAsset(
-        path.join(__dirname, '..', '..', '..', 'dist')
-      ),
-      environment: {
-        YNAB_TOKEN_PARAMETER: ynabTokenSecret.ssmPath,
+    const getYnabAccount = new NodeLambda(this, 'getYnabAccount', {
+      asset: LambdaAssets.getYnabAccount,
+      functionProps: {
+        environment: {
+          YNAB_TOKEN_PARAMETER: ynabTokenSecret.ssmPath,
+        },
       },
-      handler: 'accounts.ynabHandler',
-      runtime: lambda.Runtime.NODEJS_16_X,
-    })
-    ynabHandler.addToRolePolicy(ynabTokenSecret.readPolicyStatement)
+    }).lambdaFunction
+    getYnabAccount.addToRolePolicy(ynabTokenSecret.readPolicyStatement)
 
     // TODO: make this generic, for more than one account
-    this.accountsFunction = ynabHandler
+    this.accountsFunction = getYnabAccount
 
     api.addMethod({
-      handler: ynabHandler,
+      handler: getYnabAccount,
       methodOptions: {
         operationName: 'GetYnabAccount',
       },

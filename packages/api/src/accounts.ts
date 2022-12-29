@@ -23,7 +23,7 @@ const getConfig = (): YnabHandlerEnvironment => {
   return { YNAB_TOKEN_PARAMETER }
 }
 
-export const ynabHandler = middy(
+export const getYnabAccount = middy(
   async (
     _event: APIGatewayEvent,
     context: YnabContext

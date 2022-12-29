@@ -1,8 +1,8 @@
-import path from 'node:path'
-
 import * as lambda from 'aws-cdk-lib/aws-lambda'
 import { SsmSecret } from '@twin-digital/cdk-patterns'
 import { Construct } from 'constructs'
+import { NodeLambda } from './node-lambda'
+import { LambdaAssets } from '@wenabs/api'
 
 export class LambdaAuthorizer extends Construct {
   public readonly handler: lambda.Function
@@ -18,16 +18,14 @@ export class LambdaAuthorizer extends Construct {
         },
       })
 
-      this.handler = new lambda.Function(this, 'AuthorizerHandler', {
-        code: lambda.Code.fromAsset(
-          path.join(__dirname, '..', '..', '..', 'dist')
-        ),
-        environment: {
-          VALID_TOKEN_PARAMETER: validAuthToken.ssmPath,
+      this.handler = new NodeLambda(this, 'AuthorizerHandler', {
+        asset: LambdaAssets.authorizer,
+        functionProps: {
+          environment: {
+            VALID_TOKEN_PARAMETER: validAuthToken.ssmPath,
+          },
         },
-        handler: 'authorizer.handler',
-        runtime: lambda.Runtime.NODEJS_16_X,
-      })
+      }).lambdaFunction
       this.handler.addToRolePolicy(validAuthToken.readPolicyStatement)
     }
   }
